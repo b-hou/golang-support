@@ -412,23 +412,21 @@ func (this *ULog) log(severity syslog.Priority, xlayout interface{}, a ...interf
 		now = now.Local()
 	}
 	if this.file {
-		if now.Unix() != this.lastCheck.Unix() || this.fileHandle == nil {
+		if now.Sub(this.lastCheck) >= time.Second || this.fileHandle == nil {
+			this.lastCheck = now
 			this.Lock()
-			if this.fileHandle == nil {
-				this.lastCheck = now
-				path := strftime(this.filePath, now)
-				if path != this.filePreviousPath {
-					if this.fileHandle != nil {
-						this.fileHandle.Close()
-						this.fileHandle = nil
-					}
-					this.filePreviousPath = path
+			path := strftime(this.filePath, now)
+			if path != this.filePreviousPath {
+				if this.fileHandle != nil {
+					this.fileHandle.Close()
+					this.fileHandle = nil
 				}
-				if this.fileHandle == nil {
-					os.MkdirAll(filepath.Dir(path), 0755)
-					if this.fileHandle, err = os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644); err != nil {
-						this.fileHandle = nil
-					}
+				this.filePreviousPath = path
+			}
+			if this.fileHandle == nil {
+				os.MkdirAll(filepath.Dir(path), 0755)
+				if this.fileHandle, err = os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644); err != nil {
+					this.fileHandle = nil
 				}
 			}
 			this.Unlock()
