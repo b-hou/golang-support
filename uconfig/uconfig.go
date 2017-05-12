@@ -33,7 +33,7 @@ func init() {
 	escaped = "{}[],#/*;:= "                                                                                                          // match characters within quotes to escape
 	unescaper = regexp.MustCompile("@\\d+@")                                                                                          // match escaped characters (to reverse previous escaping)
 	expander = regexp.MustCompile("{{([<|@&!\\-\\+])\\s*([^{}]+?)\\s*}}")                                                             // match external content macros
-	sizer = regexp.MustCompile("^(\\d+)\\s*([KMGTP]?)(B?)$")                                                                          // match size value
+	sizer = regexp.MustCompile("^(\\d+(?:\\.\\d*)?)\\s*([KMGTP]?)(B?)$")                                                              // match size value
 	duration1 = regexp.MustCompile("(\\d+)(Y|MO|D|H|MN|S|MS|US)?")                                                                    // match duration value form1 (free)
 	duration2 = regexp.MustCompile("^(?:(\\d+):)?(\\d{2}):(\\d{2})(?:\\.(\\d{1,3}))?$")                                               // match duration value form2 (timecode)
 	replacers[0] = replacer{regexp.MustCompile("(?m)^(.*?)(?:#|//).*?$"), "$1", false}                                                // remove # and // commented portions
@@ -420,7 +420,7 @@ func (this *UConfig) GetSizeBounds(path string, fallback, min, max int64) int64 
 	}
 	nvalue := int64(0)
 	if matches := sizer.FindStringSubmatch(strings.TrimSpace(strings.ToUpper(value))); matches != nil {
-		nvalue, err = strconv.ParseInt(matches[1], 10, 64)
+		fvalue, err := strconv.ParseFloat(matches[1], 64)
 		if err != nil {
 			return fallback
 		}
@@ -428,7 +428,7 @@ func (this *UConfig) GetSizeBounds(path string, fallback, min, max int64) int64 
 		if matches[3] == "B" {
 			scale = float64(1024)
 		}
-		nvalue *= int64(math.Pow(scale, float64(strings.Index("_KMGTP", matches[2]))))
+		nvalue = int64(fvalue * math.Pow(scale, float64(strings.Index("_KMGTP", matches[2]))))
 	} else {
 		return fallback
 	}
