@@ -178,7 +178,7 @@ func (this *UConfig) Load(input string, inline ...bool) error {
 					}
 				}
 			}
-			if base != "" {
+			if base != "" && strings.Index(expanded, "\n") >= 0 {
 				expanded = fmt.Sprintf("/*base:%s*/\n%s\n", base, expanded)
 			}
 		case "|":
@@ -197,7 +197,7 @@ func (this *UConfig) Load(input string, inline ...bool) error {
 					}
 				}
 			}
-			if base != "" {
+			if base != "" && strings.Index(expanded, "\n") >= 0 {
 				expanded = fmt.Sprintf("/*base:%s*/\n%s\n", base, expanded)
 			}
 		case "@":
