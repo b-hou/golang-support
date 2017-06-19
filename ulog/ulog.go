@@ -181,7 +181,7 @@ func (this *ULog) Load(target string) *ULog {
 						this.optionUTC = true
 					}
 				case "level":
-					this.syslogFacility = severities[option[2]]
+					this.level = severities[strings.ToLower(option[2])]
 				}
 			}
 		}
