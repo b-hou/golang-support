@@ -65,6 +65,7 @@ type ULog struct {
 	consoleTime           int
 	consoleSeverity       bool
 	consoleColors         bool
+	consoleColorizer      *regexp.Regexp
 	syslogHandle          *syslog.Writer
 	syslogRemote          string
 	syslogName            string
@@ -97,6 +98,7 @@ func (this *ULog) Load(target string) *ULog {
 	this.consoleTime = TIME_DATE
 	this.consoleSeverity = true
 	this.consoleColors = true
+	this.consoleColorizer = regexp.MustCompile(`"([^"]+)"\s*:`)
 	this.consoleHandle = os.Stderr
 	this.syslog = false
 	this.syslogRemote = ""
@@ -460,6 +462,11 @@ func (this *ULog) log(severity syslog.Priority, xlayout interface{}, a ...interf
 				prefix += fmt.Sprintf("%s%s\x1b[0m", severityColors[severity], severityLabels[severity])
 			} else {
 				prefix += severityLabels[severity]
+			}
+		}
+		if reflect.TypeOf(xlayout).Kind() == reflect.Map && this.consoleColors {
+			for index, _ := range a {
+				a[index] = this.consoleColorizer.ReplaceAllString(fmt.Sprintf("%s", a[index]), "\"\x1b[37m$1\x1b[0m\":")
 			}
 		}
 		this.Lock()
